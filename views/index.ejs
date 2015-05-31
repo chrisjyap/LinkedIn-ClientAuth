@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html ng-app = "sharkApp">
+<head>
+  <title><%= title %></title>
+  <link rel='stylesheet' href='/stylesheets/style.css' />
+  <link rel='stylesheet' href='css/bootstrap.css' />
+
+</head>
+<body ng-controller="MenuController">
+<h1>Welcome to <%=title%></h1>
+Please Login to use our app:
+<button class="btn btn-primary" ng-click="auth('vc')">Venture Capitalist</button>
+<button class="btn btn-primary" ng-click="auth('ent')">Entrepreneur</button>
+<a href="/auth/login/vc" class="btn btn-primary">AHREF Venture Capitalist</a>
+<a href="/auth/login/ent" class="btn btn-primary">AHREF Entrepreneur</a>
+
+
+<script src='jquery.js' ></script>
+<script src='js/bootstrap.js' ></script>
+
+<script src='/angular.js'></script>
+<script type="text/javascript" src="//platform.linkedin.com/in.js">
+  api_key: <%= key %>
+  authorize: true
+</script>
+<script>
+
+  var myApp = angular.module('sharkApp', []).controller('MenuController',function($scope, $http, $q){
+    //$http.post('authorize/'+type, {});
+    $scope.auth = function(type){
+      console.log('authorize: ', IN.User.isAuthorized());
+      var queries = ':(id,first-name,last-name,summary,specialties,positions,skills,email-address)';
+      if(!IN.User.isAuthorized()){
+        IN.User.authorize(function(){
+
+          //window.location.replace("/auth/authenticated");
+          console.log('authorize: ', IN.User.isAuthorized());
+          IN.API.Raw("/people/~"+ queries+ '?format=json').result(function(data){
+            console.log(data);
+            $http.post('auth/login/'+type, data);
+
+          }).error(function(){
+            console.log(err);
+          });
+        });
+      }else{
+        IN.API.Raw("/people/~"+queries + '?format=json').result(function(data){
+          console.log(data);
+          $http.post('/auth/login/' + type, data);
+        })
+      }
+      //  else $http.get('authenticated');
+
+
+
+    }
+  });
+
+</script>
+</body>
+</html>
